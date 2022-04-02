@@ -61,7 +61,9 @@ public class Elf implements Runnable {
                     break;
                 }
                 case TROUBLE:
-                    // FIXME: if possible, move to Santa's door
+                    // If possible, move to Santa's door
+                    state = ElfState.AT_SANTAS_DOOR;
+                    scenario.santa.addElfToDoor(this);
                     break;
                 case AT_SANTAS_DOOR:
                     // FIXME: if feasible, wake up Santa

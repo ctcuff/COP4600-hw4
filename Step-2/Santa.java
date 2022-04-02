@@ -1,3 +1,5 @@
+import java.util.ArrayList;
+
 public class Santa implements Runnable {
 
     enum SantaState {
@@ -9,14 +11,21 @@ public class Santa implements Runnable {
 
     private SantaState state;
     private boolean running;
+    public ArrayList<Elf> elvesAtDoor;
 
     public Santa(SantaScenario scenario) {
         this.state = SantaState.SLEEPING;
         this.running = true;
+        this.elvesAtDoor = new ArrayList<>();
     }
 
     public void stopRunning() {
         this.running = false;
+    }
+
+    public void addElfToDoor(Elf elf) {
+        state = SantaState.WOKEN_UP_BY_ELVES;
+        elvesAtDoor.add(elf);
     }
 
     @Override
@@ -33,7 +42,15 @@ public class Santa implements Runnable {
                 case SLEEPING: // if sleeping, continue to sleep
                     break;
                 case WOKEN_UP_BY_ELVES:
-                    // FIXME: help the elves who are at the door and go back to sleep
+                    // Help the elves who are at the door and go back to sleep
+                    for (int i = 0; i < elvesAtDoor.size(); i++) {
+                        elvesAtDoor.get(i).setState(Elf.ElfState.WORKING);
+                        elvesAtDoor.remove(i);
+                    }
+
+                    if (elvesAtDoor.isEmpty()) {
+                        state = SantaState.SLEEPING;
+                    }
                     break;
                 case WOKEN_UP_BY_REINDEER:
                     // FIXME: assemble the reindeer to the sleigh then change state to ready
@@ -50,5 +67,4 @@ public class Santa implements Runnable {
     public void report() {
         System.out.println("Santa : " + state);
     }
-
 }
