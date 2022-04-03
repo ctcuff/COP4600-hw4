@@ -24,8 +24,15 @@ public class Santa implements Runnable {
     }
 
     public void addElfToDoor(Elf elf) {
-        state = SantaState.WOKEN_UP_BY_ELVES;
         elvesAtDoor.add(elf);
+    }
+
+    public void wakeUp(Runnable waker) {
+        if (waker instanceof Elf) {
+            state = SantaState.WOKEN_UP_BY_ELVES;
+        } else if (waker instanceof Reindeer) {
+            state = SantaState.WOKEN_UP_BY_REINDEER;
+        }
     }
 
     @Override
@@ -35,7 +42,6 @@ public class Santa implements Runnable {
             try {
                 Thread.sleep(100);
             } catch (InterruptedException e) {
-                // TODO Auto-generated catch block
                 e.printStackTrace();
             }
             switch (state) {
@@ -44,7 +50,12 @@ public class Santa implements Runnable {
                 case WOKEN_UP_BY_ELVES:
                     // Help the elves who are at the door and go back to sleep
                     for (int i = 0; i < elvesAtDoor.size(); i++) {
-                        elvesAtDoor.get(i).setState(Elf.ElfState.WORKING);
+                        Elf elf = elvesAtDoor.get(i);
+
+                        if (elf != null) {
+                            elf.setState(Elf.ElfState.WORKING);
+                        }
+
                         elvesAtDoor.remove(i);
                     }
 
