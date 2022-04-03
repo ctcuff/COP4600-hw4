@@ -13,14 +13,16 @@ public class Santa implements Runnable {
     private SantaState state;
     private boolean running;
     public ArrayList<Elf> elvesAtDoor;
-    private Semaphore semaphore;
+    private Semaphore elfSemaphore;
+    private Semaphore reindeerSemaphore;
     private SantaScenario scenario;
 
-    public Santa(SantaScenario scenario, Semaphore semaphore) {
+    public Santa(SantaScenario scenario, Semaphore elfSemaphore, Semaphore reindeerSemaphore) {
         this.state = SantaState.SLEEPING;
         this.running = true;
         this.elvesAtDoor = new ArrayList<>();
-        this.semaphore = semaphore;
+        this.elfSemaphore = elfSemaphore;
+        this.reindeerSemaphore = reindeerSemaphore;
         this.scenario = scenario;
     }
 
@@ -57,14 +59,21 @@ public class Santa implements Runnable {
                         // Help the elves who are at the door and go back to sleep
                         if (elf.getState() == Elf.ElfState.AT_SANTAS_DOOR) {
                             elf.setState(Elf.ElfState.WORKING);
-                            semaphore.release();
+                            elfSemaphore.release();
                         }
                     }
 
                     state = SantaState.SLEEPING;
                     break;
                 case WOKEN_UP_BY_REINDEER:
-                    // FIXME: assemble the reindeer to the sleigh then change state to ready
+                    // Assemble the reindeer to the sleigh then change state to ready
+                    for (Reindeer reindeer : scenario.reindeers) {
+                        reindeer.setState(Reindeer.ReindeerState.AT_THE_SLEIGH);
+                        reindeer.setRunning(true);
+                    }
+
+                    reindeerSemaphore.release();
+                    state = SantaState.READY_FOR_CHRISTMAS;
                     break;
                 case READY_FOR_CHRISTMAS: // nothing more to be done
                     break;

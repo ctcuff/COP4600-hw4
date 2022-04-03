@@ -1,4 +1,5 @@
 import java.util.Random;
+import java.util.concurrent.Semaphore;
 
 public class Reindeer implements Runnable {
 
@@ -12,21 +13,27 @@ public class Reindeer implements Runnable {
     private SantaScenario scenario;
     private Random rand = new Random();
     private boolean running;
+    private Semaphore semaphore;
 
     /**
      * The number associated with the reindeer
      */
     private int number;
 
-    public Reindeer(int number, SantaScenario scenario) {
+    public Reindeer(int number, SantaScenario scenario, Semaphore semaphore) {
         this.number = number;
         this.scenario = scenario;
         this.state = ReindeerState.AT_BEACH;
         this.running = true;
+        this.semaphore = semaphore;
     }
 
-    public void stopRunning() {
-        running = false;
+    public void setRunning(boolean running) {
+        this.running = running;
+    }
+
+    public void setState(ReindeerState state) {
+        this.state = state;
     }
 
     @Override
@@ -36,12 +43,13 @@ public class Reindeer implements Runnable {
             try {
                 Thread.sleep(100);
             } catch (InterruptedException e) {
-                // TODO Auto-generated catch block
                 e.printStackTrace();
             }
+
             // see what we need to do:
             switch (state) {
-                case AT_BEACH: { // if it is December, the reindeer might think about returning from the beach
+                case AT_BEACH: {
+                    // If it is December, the reindeer might think about returning from the beach
                     if (scenario.isDecember) {
                         if (rand.nextDouble() < 0.1) {
                             state = ReindeerState.AT_WARMING_SHED;
@@ -50,7 +58,20 @@ public class Reindeer implements Runnable {
                     break;
                 }
                 case AT_WARMING_SHED:
-                    // if all the reindeer are home, wake up santa
+                    boolean allAtShed = scenario.reindeers
+                            .stream()
+                            .allMatch(reindeer -> reindeer.state == ReindeerState.AT_WARMING_SHED);
+
+                    // If all the reindeer are home, wake up santa
+                    if (allAtShed && semaphore.availablePermits() == 1) {
+                        try {
+                            semaphore.acquire();
+                            scenario.santa.wakeUp(this);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
+
                     break;
                 case AT_THE_SLEIGH:
                     // keep pulling

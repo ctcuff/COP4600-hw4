@@ -9,13 +9,15 @@ public class SantaScenario {
     public boolean isDecember;
 
     public static void main(String[] args) {
-        Semaphore semaphore = new Semaphore(3);
+        Semaphore elfSemaphore = new Semaphore(3);
+        Semaphore reindeerSemaphore = new Semaphore(1);
+
         SantaScenario scenario = new SantaScenario();
         scenario.isDecember = false;
 
         // create the participants
         // Santa
-        scenario.santa = new Santa(scenario, semaphore);
+        scenario.santa = new Santa(scenario, elfSemaphore, reindeerSemaphore);
         Thread th = new Thread(scenario.santa);
         th.start();
 
@@ -23,7 +25,7 @@ public class SantaScenario {
         scenario.elves = new ArrayList<>();
 
         for (int i = 0; i != 10; i++) {
-            Elf elf = new Elf(i + 1, scenario, semaphore);
+            Elf elf = new Elf(i + 1, scenario, elfSemaphore);
             scenario.elves.add(elf);
             th = new Thread(elf);
             th.start();
@@ -32,13 +34,12 @@ public class SantaScenario {
         // The reindeer: in this case: 9
         scenario.reindeers = new ArrayList<>();
 
-        // There are no reindeer present for this scenario
-        // for (int i = 0; i != 9; i++) {
-        //     Reindeer reindeer = new Reindeer(i + 1, scenario);
-        //     scenario.reindeers.add(reindeer);
-        //     th = new Thread(reindeer);
-        //     th.start();
-        // }
+        for (int i = 0; i != 9; i++) {
+            Reindeer reindeer = new Reindeer(i + 1, scenario, reindeerSemaphore);
+            scenario.reindeers.add(reindeer);
+            th = new Thread(reindeer);
+            th.start();
+        }
 
         // now, start the passing of time
         for (int day = 1; day < 500; day++) {
@@ -65,7 +66,7 @@ public class SantaScenario {
                 }
 
                 for (Reindeer reindeer : scenario.reindeers) {
-                    reindeer.stopRunning();
+                    reindeer.setRunning(false);
                 }
             }
 

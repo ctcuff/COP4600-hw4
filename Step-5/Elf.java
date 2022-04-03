@@ -70,6 +70,7 @@ public class Elf implements Runnable {
                     break;
                 }
                 case TROUBLE:
+                    // Once 3 elves have acquired the semaphore, we can wake up Santa
                     if (semaphore.availablePermits() == 0) {
                         for (Elf elf : scenario.elves) {
                             if (elf.state == ElfState.TROUBLE) {
