@@ -30,12 +30,13 @@ public class SantaScenario {
         // The reindeer: in this case: 9
         scenario.reindeers = new ArrayList<>();
 
-        for (int i = 0; i != 9; i++) {
-            Reindeer reindeer = new Reindeer(i + 1, scenario);
-            scenario.reindeers.add(reindeer);
-            th = new Thread(reindeer);
-            th.start();
-        }
+        // There are no reindeer present for this scenario
+        // for (int i = 0; i != 9; i++) {
+        //     Reindeer reindeer = new Reindeer(i + 1, scenario);
+        //     scenario.reindeers.add(reindeer);
+        //     th = new Thread(reindeer);
+        //     th.start();
+        // }
 
         // now, start the passing of time
         for (int day = 1; day < 500; day++) {
