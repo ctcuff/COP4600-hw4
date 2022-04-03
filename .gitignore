@@ -1,6 +1,7 @@
-.idea
-.vscode
-out
+.idea/
+.vscode/
+out/
+dist/
 *.iml
 *.class
 .DS_Store
