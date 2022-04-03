@@ -17,7 +17,6 @@ public class Elf implements Runnable {
     private Random rand = new Random();
     private SantaScenario scenario;
     private boolean running;
-    private boolean isInTrouble;
     private Semaphore semaphore;
 
     public Elf(int number, SantaScenario scenario, Semaphore semaphore) {
@@ -26,7 +25,6 @@ public class Elf implements Runnable {
         this.semaphore = semaphore;
         this.state = ElfState.WORKING;
         this.running = true;
-        this.isInTrouble = false;
     }
 
     public ElfState getState() {
@@ -58,7 +56,6 @@ public class Elf implements Runnable {
             }
             switch (state) {
                 case WORKING: {
-                    isInTrouble = false;
                     // at each day, there is a 1% chance that an elf runs into
                     // trouble.
                     if (rand.nextDouble() < 0.01) {
