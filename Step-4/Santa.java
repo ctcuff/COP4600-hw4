@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.util.concurrent.Semaphore;
 
 public class Santa implements Runnable {
 
@@ -12,11 +13,15 @@ public class Santa implements Runnable {
     private SantaState state;
     private boolean running;
     public ArrayList<Elf> elvesAtDoor;
+    private Semaphore semaphore;
+    private SantaScenario scenario;
 
-    public Santa(SantaScenario scenario) {
+    public Santa(SantaScenario scenario, Semaphore semaphore) {
         this.state = SantaState.SLEEPING;
         this.running = true;
         this.elvesAtDoor = new ArrayList<>();
+        this.semaphore = semaphore;
+        this.scenario = scenario;
     }
 
     public void stopRunning() {
@@ -48,20 +53,15 @@ public class Santa implements Runnable {
                 case SLEEPING: // if sleeping, continue to sleep
                     break;
                 case WOKEN_UP_BY_ELVES:
-                    // Help the elves who are at the door and go back to sleep
-                    for (int i = 0; i < elvesAtDoor.size(); i++) {
-                        Elf elf = elvesAtDoor.get(i);
-
-                        if (elf != null) {
+                    for (Elf elf : scenario.elves) {
+                        // Help the elves who are at the door and go back to sleep
+                        if (elf.getState() == Elf.ElfState.AT_SANTAS_DOOR) {
                             elf.setState(Elf.ElfState.WORKING);
+                            semaphore.release();
                         }
-
-                        elvesAtDoor.remove(i);
                     }
 
-                    if (elvesAtDoor.isEmpty()) {
-                        state = SantaState.SLEEPING;
-                    }
+                    state = SantaState.SLEEPING;
                     break;
                 case WOKEN_UP_BY_REINDEER:
                     // FIXME: assemble the reindeer to the sleigh then change state to ready

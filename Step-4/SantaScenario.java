@@ -1,29 +1,29 @@
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Semaphore;
 
 public class SantaScenario {
     public Santa santa;
     public List<Elf> elves;
     public List<Reindeer> reindeers;
-    public ArrayList<Elf> elvesInTrouble;
     public boolean isDecember;
 
     public static void main(String[] args) {
+        Semaphore semaphore = new Semaphore(3);
         SantaScenario scenario = new SantaScenario();
         scenario.isDecember = false;
 
         // create the participants
         // Santa
-        scenario.santa = new Santa(scenario);
+        scenario.santa = new Santa(scenario, semaphore);
         Thread th = new Thread(scenario.santa);
         th.start();
 
         // The elves: in this case: 10
         scenario.elves = new ArrayList<>();
-        scenario.elvesInTrouble = new ArrayList<>();
 
         for (int i = 0; i != 10; i++) {
-            Elf elf = new Elf(i + 1, scenario);
+            Elf elf = new Elf(i + 1, scenario, semaphore);
             scenario.elves.add(elf);
             th = new Thread(elf);
             th.start();

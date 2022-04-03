@@ -1,4 +1,5 @@
 import java.util.Random;
+import java.util.concurrent.Semaphore;
 
 public class Elf implements Runnable {
 
@@ -17,10 +18,12 @@ public class Elf implements Runnable {
     private SantaScenario scenario;
     private boolean running;
     private boolean isInTrouble;
+    private Semaphore semaphore;
 
-    public Elf(int number, SantaScenario scenario) {
+    public Elf(int number, SantaScenario scenario, Semaphore semaphore) {
         this.number = number;
         this.scenario = scenario;
+        this.semaphore = semaphore;
         this.state = ElfState.WORKING;
         this.running = true;
         this.isInTrouble = false;
@@ -60,27 +63,28 @@ public class Elf implements Runnable {
                     // trouble.
                     if (rand.nextDouble() < 0.01) {
                         state = ElfState.TROUBLE;
+
+                        try {
+                            semaphore.acquire();
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
                     }
                     break;
                 }
                 case TROUBLE:
-                    if (!isInTrouble) {
-                        scenario.elvesInTrouble.add(this);
-                        isInTrouble = true;
-                    }
-
-                    if (scenario.elvesInTrouble.size() == 3) {
-                        for (Elf elf : scenario.elvesInTrouble) {
-                            elf.setState(ElfState.AT_SANTAS_DOOR);
+                    if (semaphore.availablePermits() == 0) {
+                        for (Elf elf : scenario.elves) {
+                            if (elf.state == ElfState.TROUBLE) {
+                                elf.setState(Elf.ElfState.AT_SANTAS_DOOR);
+                            }
                         }
-                        
-                        scenario.santa.elvesAtDoor.addAll(scenario.elvesInTrouble);
-                        scenario.elvesInTrouble.clear();
-                        scenario.santa.wakeUp(this);
                     }
                     break;
                 case AT_SANTAS_DOOR:
-                    // FIXME: if feasible, wake up Santa
+                    // In this case, Santa will only be woken up if 3 elves have
+                    // acquired the semaphore
+                    scenario.santa.wakeUp(this);
                     break;
             }
         }
